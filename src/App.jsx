@@ -6,12 +6,12 @@ export default function App() {
   const [started, setStarted] = useState(false);
   const [gameState, setGameState] = useState('input'); 
   const [currentRound, setCurrentRound] = useState(1);
-  const [prompt, setPrompt] = useState('');
-  const [customPrompt, setCustomPrompt] = useState('');
-  const [argument, setArgument] = useState('');
+  const [prompt, setPrompt] = useState(''); // Get the ai to fill this in
+  const [customPrompt, setCustomPrompt] = useState(''); // We let ai read this one
+  const [argument, setArgument] = useState(''); // Ai fill this one in
   const [timeLeft, setTimeLeft] = useState(120);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [verdict, setVerdict] = useState('');
+  const [verdict, setVerdict] = useState(''); // Fix this later
   const [scores, setScores] = useState([]);
   const [totalScore, setTotalScore] = useState(0);
 
@@ -128,20 +128,22 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
 
       const scoreMatch = judgeResponse.match(/SCORE:\s*(\d+)/i);
       const score = scoreMatch ? parseInt(scoreMatch[1]) : 70;
-
+      
       setVerdict(judgeResponse);
       setScores([...scores, score]);
       setTotalScore(totalScore + score);
       setGameState('results');
     } catch (error) {
       console.error('Error getting verdict:', error);
-      setVerdict('SCORE: 75\nVERDICT: A solid argument with good reasoning.\nFEEDBACK: Consider providing more specific examples to strengthen your position.');
+      setVerdict('SCORE: ' + scores + ' \nVERDICT: A solid argument with good reasoning.\nFEEDBACK: Consider providing more specific examples to strengthen your position.');
       setScores([...scores, 75]);
       setTotalScore(totalScore + 75);
       setGameState('results');
     }
-  };
+  }; // ai end
 
+
+  // nextROund function
   const nextRound = () => {
     if (currentRound < 3) {
       setCurrentRound(currentRound + 1);
@@ -151,7 +153,7 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
       setGameState('end');
     }
   };
-
+  //restarts the game and the puts the user into the new round
   const restartGame = () => {
     setStarted(false);
     setGameState('input');
@@ -165,13 +167,13 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
     setTotalScore(0);
     setFadeClass('fade-in');
   };
-
+  // Prints out the seoncds and the minutes
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-
+// Main Html
   return (
     <>
 
@@ -197,13 +199,13 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
 
         {started && (
           <main id="main2-wrapper">
-            {/* Input Screen */}
+            {/* Input Screen for the first part of a round */}
             {gameState === 'input' && (
               <div>
                 <h2 style={{fontSize: '36px', textAlign: 'center', marginBottom: '30px'}}>
                   Round {currentRound} of 3
                 </h2>
-                
+                {/*  THe prompt box */}
                 <div className="input-section">
                   <input
                     type="text"
@@ -211,7 +213,7 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
                     value={customPrompt}
                     onChange={(e) => setCustomPrompt(e.target.value)}
                   />
-                  
+                  {/* buttons underneath the prompt box */}
                   <div className="button-group">
                     <button className="btn btn-primary" onClick={useCustomPrompt}>
                       Use My Topic
@@ -227,7 +229,7 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
 
             {/* Playing Screen */}
             {gameState === 'playing' && (
-              <div>
+              <div id = 'playingdiv'>
                 <div className="round-header">
                   <div style={{fontSize: '24px', fontWeight: 'bold'}}>Round {currentRound} of 3</div>
                   <div className={`timer ${timeLeft < 30 ? 'warning' : ''}`}>
@@ -235,12 +237,12 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
                     {formatTime(timeLeft)}
                   </div>
                 </div>
-
+                {/*  The prompt in the round*/}
                 <div className="prompt-box">
                   <strong>THE CASE:</strong><br/><br/>
                   {prompt}
                 </div>
-
+                {/*input section for the second part of the round */}
                 <div className="input-section">
                   <h3 style={{fontSize: '24px', marginBottom: '15px'}}>Your Argument:</h3>
                   <textarea
@@ -249,12 +251,10 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
                     placeholder="State your position and build your case. Use logic, evidence, and persuasive rhetoric to convince Judge AI..."
                   />
                   <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px'}}>
-                    <span style={{fontSize: '16px', color: '#a0aec0'}}>{argument.length} characters</span>
                     <button 
                       className="btn btn-success" 
                       onClick={handleSubmitArgument}
-                      disabled={!argument.trim()}
-                    >
+                      disabled={!argument.trim()}>
                       Submit to Judge
                     </button>
                   </div>
@@ -274,7 +274,7 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
               </div>
             )}
 
-            {/* Results Screen */}
+            {/* Results Screen when  currentRound >= 3 */}
             {gameState === 'results' && (
               <div>
                 <h2 style={{fontSize: '36px', textAlign: 'center', marginBottom: '30px'}}>
@@ -299,7 +299,7 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
               </div>
             )}
 
-            {/* End Screen */}
+            {/* Prints the results of game*/}
             {gameState === 'end' && (
               <div>
                 <h2 style={{fontSize: '48px', textAlign: 'center', marginBottom: '20px'}}>

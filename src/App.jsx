@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Scale, Clock, Gavel, Sparkles, Wand2 } from 'lucide-react';
+import { Scale, Clock, Gavel, Sparkles, Wand2, Trophy, Zap, Star } from 'lucide-react';
 import './App.css';
+
+const API_URL = 'http://localhost:3000/api';
+
 export default function App() {
   const [fadeClass, setFadeClass] = useState("fade-in"); 
   const [started, setStarted] = useState(false);
   const [gameState, setGameState] = useState('input'); 
   const [currentRound, setCurrentRound] = useState(1);
-  const [prompt, setPrompt] = useState(''); // Get the ai to fill this in
-  const [customPrompt, setCustomPrompt] = useState(''); // We let ai read this one
-  const [argument, setArgument] = useState(''); // Ai fill this one in
+  const [prompt, setPrompt] = useState('');
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [argument, setArgument] = useState('');
   const [timeLeft, setTimeLeft] = useState(120);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [verdict, setVerdict] = useState(''); // Fix this later
+  const [verdict, setVerdict] = useState('');
   const [scores, setScores] = useState([]);
   const [totalScore, setTotalScore] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(false);
 
 // The start of the fade in 
   useEffect(() => {
@@ -36,36 +40,29 @@ export default function App() {
       setStarted(true);
     }, 800);
   };
-// get ai
   const generateAIPrompt = async () => {
     setIsGenerating(true);
     try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "",
-          max_tokens: 1000,
-          messages: [
-            {
-              role: "user",
-              content: `Generate a thought-provoking ethical or legal debate prompt for round ${currentRound} of 3. Make round ${currentRound} ${currentRound === 1 ? 'moderately challenging' : currentRound === 2 ? 'more complex' : 'the most difficult'}. Return ONLY the debate prompt as a single question or scenario, nothing else.`
-            }
-          ],
-        })
+      const response = await fetch(`${API_URL}/generate-prompt`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentRound })
       });
-
+      
       const data = await response.json();
-      const generatedPrompt = data.content[0].text.trim();
-      setPrompt(generatedPrompt);
+      
+      if (data.error) {
+        setPrompt(data.fallback || 'Should social media companies be held legally responsible for misinformation spread on their platforms?');
+      } else {
+        setPrompt(data.prompt);
+      }
+      
       setGameState('playing');
       setTimeLeft(120);
       setArgument('');
     } catch (error) {
       console.error('Error generating prompt:', error);
-      setPrompt();
+      setPrompt('Should social media companies be held legally responsible for misinformation spread on their platforms?');
       setGameState('playing');
       setTimeLeft(120);
     }
@@ -90,44 +87,30 @@ export default function App() {
     }
 
     setGameState('judging');
+    
     try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "",
-          max_tokens: 1000,
-          messages: [
-            {
-              role: "user",
-              content: `You are Judge AI in a debate competition.
-
-CASE: ${prompt}
-
-LAWYER'S ARGUMENT:
-${argument}
-
-Evaluate this argument and provide:
-1. A score out of 100
-2. Brief feedback on strengths and weaknesses
-3. Your verdict
-
-Format your response EXACTLY as:
-SCORE: [number]
-VERDICT: [Your ruling in 2-3 sentences]
-FEEDBACK: [Constructive feedback in 2-3 sentences]`
-            }
-          ],
-        })
+      const response = await fetch(`${API_URL}/judge-argument`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, argument })
       });
-
+      
       const data = await response.json();
-      const judgeResponse = data.content[0].text;
-
-      const scoreMatch = judgeResponse.match(/SCORE:\s*(\d+)/i);
-      const score = scoreMatch ? parseInt(scoreMatch[1]) : 70;
+      
+      let judgeResponse, score;
+      
+      if (data.error) {
+        judgeResponse = data.fallback.verdict;
+        score = data.fallback.score;
+      } else {
+        judgeResponse = data.verdict;
+        score = data.score;
+      }
+      
+      if (score >= 80) {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
+      }
       
       setVerdict(judgeResponse);
       setScores([...scores, score]);
@@ -135,12 +118,12 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
       setGameState('results');
     } catch (error) {
       console.error('Error getting verdict:', error);
-      setVerdict('SCORE: ' + scores + ' \nVERDICT: A solid argument with good reasoning.\nFEEDBACK: Consider providing more specific examples to strengthen your position.');
+      setVerdict('SCORE: 75\nVERDICT: A solid argument with good reasoning! Judge Gemini approves! 🎯\nFEEDBACK: Consider providing more specific examples to strengthen your position. Keep up the great work!');
       setScores([...scores, 75]);
       setTotalScore(totalScore + 75);
       setGameState('results');
     }
-  }; // ai end
+  };
 
 
   // nextROund function
@@ -265,20 +248,39 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
             {/* Judging Screen */}
             {gameState === 'judging' && (
               <div style={{textAlign: 'center', paddingTop: '100px'}}>
-                <Gavel size={80} style={{margin: '0 auto 30px', animation: 'bounce 1s infinite'}} />
-                <h2 style={{fontSize: '36px', marginBottom: '30px'}}>Judge AI is Deliberating...</h2>
+                <div style={{position: 'relative', display: 'inline-block'}}>
+                  <Gavel size={80} style={{margin: '0 auto 30px', animation: 'bounce 1s infinite', color: '#ffd43b'}} />
+                  <Sparkles size={40} style={{position: 'absolute', top: 0, right: -20, color: '#667eea', animation: 'pulse 2s infinite'}} />
+                </div>
+                <h2 style={{fontSize: '36px', marginBottom: '30px'}}>⚖️ Judge Gemini is Deliberating...</h2>
                 <div className="loading">
                   <div className="spinner"></div>
-                  <span>Analyzing your argument</span>
+                  <span>✨ Analyzing your argument with AI magic...</span>
                 </div>
               </div>
             )}
 
-            {/* Results Screen when  currentRound >= 3 */}
+            {/* Results Screen */}
             {gameState === 'results' && (
               <div>
+                {showConfetti && (
+                  <div className="confetti-container">
+                    {[...Array(50)].map((_, i) => (
+                      <div key={i} className="confetti" style={{
+                        left: `${Math.random() * 100}%`,
+                        animationDelay: `${Math.random() * 3}s`,
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#ffd43b', '#51cf66'][Math.floor(Math.random() * 5)]
+                      }}></div>
+                    ))}
+                  </div>
+                )}
+                
+                <div style={{textAlign: 'center', marginBottom: '20px'}}>
+                  <Trophy size={60} color="#ffd43b" style={{animation: 'bounce 2s infinite'}} />
+                </div>
+                
                 <h2 style={{fontSize: '36px', textAlign: 'center', marginBottom: '30px'}}>
-                  Round {currentRound} Verdict
+                  ⚖️ Round {currentRound} Verdict
                 </h2>
                 
                 <div className="verdict-box">
@@ -288,10 +290,12 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
                 <div className="button-group">
                   {currentRound < 3 ? (
                     <button className="btn btn-primary" onClick={nextRound}>
+                      <Zap size={20} />
                       Next Round →
                     </button>
                   ) : (
                     <button className="btn btn-success" onClick={nextRound}>
+                      <Star size={20} />
                       See Final Results
                     </button>
                   )}
@@ -299,18 +303,27 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
               </div>
             )}
 
-            {/* Prints the results of game*/}
+            {/* Final Results */}
             {gameState === 'end' && (
               <div>
+                <div style={{textAlign: 'center', marginBottom: '30px'}}>
+                  <Trophy size={100} color="#ffd43b" style={{animation: 'bounce 2s infinite'}} />
+                  <Star size={50} style={{position: 'absolute', top: '100px', left: 'calc(50% - 80px)', color: '#667eea', animation: 'pulse 2s infinite'}} />
+                  <Star size={50} style={{position: 'absolute', top: '100px', right: 'calc(50% - 80px)', color: '#f093fb', animation: 'pulse 2s infinite 0.5s'}} />
+                </div>
+                
                 <h2 style={{fontSize: '48px', textAlign: 'center', marginBottom: '20px'}}>
-                  Trial Complete!
+                  🎉 Trial Complete! 🎉
                 </h2>
                 
                 <div className="final-score">
                   {Math.round(totalScore / 3)}/100
                 </div>
-                <p style={{textAlign: 'center', fontSize: '24px', marginBottom: '40px'}}>
-                  Average Score Across 3 Rounds
+                <p style={{textAlign: 'center', fontSize: '24px', marginBottom: '40px', color: 'rgba(255,255,255,0.9)'}}>
+                  {Math.round(totalScore / 3) >= 90 ? '🏆 LEGENDARY DEBATER!' : 
+                   Math.round(totalScore / 3) >= 75 ? '⭐ SKILLED ADVOCATE!' :
+                   Math.round(totalScore / 3) >= 60 ? '💪 SOLID PERFORMER!' :
+                   '📚 RISING STAR!'}
                 </p>
 
                 <div className="score-grid">
@@ -318,12 +331,16 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
                     <div key={i} className="score-card">
                       <div className="label">Round {i + 1}</div>
                       <div className="value">{score}</div>
+                      <div style={{fontSize: '14px', marginTop: '10px'}}>
+                        {score >= 90 ? '🌟' : score >= 75 ? '✨' : score >= 60 ? '💫' : '⭐'}
+                      </div>
                     </div>
                   ))}
                 </div>
 
                 <div className="button-group">
                   <button className="btn btn-primary" onClick={restartGame}>
+                    <Sparkles size={20} />
                     New Trial
                   </button>
                 </div>

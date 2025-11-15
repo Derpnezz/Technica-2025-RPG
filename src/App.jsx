@@ -46,9 +46,10 @@ export default function App() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-api-key": process.env.REACT_APP_ANTHROPIC_KEY,
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
+          model: "Gemini Ai",
           max_tokens: 1000,
           messages: [
             {
@@ -91,16 +92,17 @@ export default function App() {
       return;
     }
 
-    setGameState('judging');
+    setGameState('judging'); // for the judging state of the game
 
     try {
       const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-api-key": process.env.REACT_APP_ANTHROPIC_KEY,
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
+          model: "gemini ai",
           max_tokens: 1000,
           messages: [
             {

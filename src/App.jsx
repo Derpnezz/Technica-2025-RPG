@@ -46,7 +46,7 @@ export default function App() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
+          model: "",
           max_tokens: 1000,
           messages: [
             {
@@ -65,7 +65,7 @@ export default function App() {
       setArgument('');
     } catch (error) {
       console.error('Error generating prompt:', error);
-      setPrompt('Should social media companies be held legally responsible for misinformation spread on their platforms?');
+      setPrompt();
       setGameState('playing');
       setTimeLeft(120);
     }
@@ -90,7 +90,6 @@ export default function App() {
     }
 
     setGameState('judging');
-
     try {
       const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -98,7 +97,7 @@ export default function App() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
+          model: "",
           max_tokens: 1000,
           messages: [
             {

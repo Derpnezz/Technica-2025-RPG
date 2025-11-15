@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Scale, Clock, Gavel, Sparkles, Wand2 } from 'lucide-react';
 import './App.css';
+
 export default function App() {
-  const [fadeClass, setFadeClass] = useState("fade-in"); 
+  const [fadeClass, setFadeClass] = useState("fade-in");
   const [started, setStarted] = useState(false);
-  const [gameState, setGameState] = useState('input'); 
+  const [gameState, setGameState] = useState('input'); // input, playing, judging, results, end
   const [currentRound, setCurrentRound] = useState(1);
-  const [prompt, setPrompt] = useState(''); // Get the ai to fill this in
-  const [customPrompt, setCustomPrompt] = useState(''); // We let ai read this one
-  const [argument, setArgument] = useState(''); // Ai fill this one in
+  const [prompt, setPrompt] = useState('');
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [argument, setArgument] = useState('');
   const [timeLeft, setTimeLeft] = useState(120);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [verdict, setVerdict] = useState(''); // Fix this later
+  const [verdict, setVerdict] = useState('');
   const [scores, setScores] = useState([]);
   const [totalScore, setTotalScore] = useState(0);
 
-// The start of the fade in 
+  // Initial fade in
   useEffect(() => {
     setFadeClass("fade-in");
   }, []);
 
-// Timer
+  // Timer countdown
   useEffect(() => {
     if (gameState === 'playing' && timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
@@ -36,9 +37,10 @@ export default function App() {
       setStarted(true);
     }, 800);
   };
-// get ai
+
   const generateAIPrompt = async () => {
     setIsGenerating(true);
+    setCustomPrompt(''); // Clear the custom prompt input
     try {
       const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -46,7 +48,7 @@ export default function App() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "",
+          model: "claude-sonnet-4-20250514",
           max_tokens: 1000,
           messages: [
             {
@@ -65,7 +67,7 @@ export default function App() {
       setArgument('');
     } catch (error) {
       console.error('Error generating prompt:', error);
-      setPrompt();
+      setPrompt('Should social media companies be held legally responsible for misinformation spread on their platforms?');
       setGameState('playing');
       setTimeLeft(120);
     }
@@ -90,6 +92,7 @@ export default function App() {
     }
 
     setGameState('judging');
+
     try {
       const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -97,7 +100,7 @@ export default function App() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "",
+          model: "claude-sonnet-4-20250514",
           max_tokens: 1000,
           messages: [
             {
@@ -128,32 +131,32 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
 
       const scoreMatch = judgeResponse.match(/SCORE:\s*(\d+)/i);
       const score = scoreMatch ? parseInt(scoreMatch[1]) : 70;
-      
+
       setVerdict(judgeResponse);
       setScores([...scores, score]);
       setTotalScore(totalScore + score);
       setGameState('results');
     } catch (error) {
       console.error('Error getting verdict:', error);
-      setVerdict('SCORE: ' + scores + ' \nVERDICT: A solid argument with good reasoning.\nFEEDBACK: Consider providing more specific examples to strengthen your position.');
+      setVerdict('SCORE: 75\nVERDICT: A solid argument with good reasoning.\nFEEDBACK: Consider providing more specific examples to strengthen your position.');
       setScores([...scores, 75]);
       setTotalScore(totalScore + 75);
       setGameState('results');
     }
-  }; // ai end
+  };
 
-
-  // nextROund function
   const nextRound = () => {
     if (currentRound < 3) {
       setCurrentRound(currentRound + 1);
       setGameState('input');
       setCustomPrompt('');
+      setPrompt('');
+      setArgument('');
     } else {
       setGameState('end');
     }
   };
-  //restarts the game and the puts the user into the new round
+
   const restartGame = () => {
     setStarted(false);
     setGameState('input');
@@ -167,16 +170,15 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
     setTotalScore(0);
     setFadeClass('fade-in');
   };
-  // Prints out the seoncds and the minutes
+
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-// Main Html
+
   return (
     <>
-
       <div id="full-screen">
         {!started && (
           <main id="main-wrapper" className={fadeClass}>
@@ -199,13 +201,13 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
 
         {started && (
           <main id="main2-wrapper">
-            {/* Input Screen for the first part of a round */}
+            {/* Input Screen */}
             {gameState === 'input' && (
               <div>
                 <h2 style={{fontSize: '36px', textAlign: 'center', marginBottom: '30px'}}>
                   Round {currentRound} of 3
                 </h2>
-                {/*  THe prompt box */}
+                
                 <div className="input-section">
                   <input
                     type="text"
@@ -213,7 +215,7 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
                     value={customPrompt}
                     onChange={(e) => setCustomPrompt(e.target.value)}
                   />
-                  {/* buttons underneath the prompt box */}
+                  
                   <div className="button-group">
                     <button className="btn btn-primary" onClick={useCustomPrompt}>
                       Use My Topic
@@ -229,34 +231,38 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
 
             {/* Playing Screen */}
             {gameState === 'playing' && (
-              <div id = 'playingdiv'>
-                <div className="round-header">
-                  <div style={{fontSize: '24px', fontWeight: 'bold'}}>Round {currentRound} of 3</div>
-                  <div className={`timer ${timeLeft < 30 ? 'warning' : ''}`}>
-                    <Clock size={32} style={{display: 'inline', marginRight: '10px'}} />
-                    {formatTime(timeLeft)}
+              <div className="playingdiv">
+                <div style={{width: '100%', maxWidth: '1200px'}}>
+                  <div className="round-header">
+                    <div style={{fontSize: '24px', fontWeight: 'bold'}}>Round {currentRound} of 3</div>
+                    <div className={`timer ${timeLeft < 30 ? 'warning' : ''}`}>
+                      <Clock size={32} style={{display: 'inline', marginRight: '10px'}} />
+                      {formatTime(timeLeft)}
+                    </div>
                   </div>
-                </div>
-                {/*  The prompt in the round*/}
-                <div className="prompt-box">
-                  <strong>THE CASE:</strong><br/><br/>
-                  {prompt}
-                </div>
-                {/*input section for the second part of the round */}
-                <div className="input-section2">
-                  <h3 style={{fontSize: '24px', marginBottom: '15px'}}>Your Argument:</h3>
-                  <textarea
-                    value={argument}
-                    onChange={(e) => setArgument(e.target.value)}
-                    placeholder="State your position and build your case. Use logic, evidence, and persuasive rhetoric to convince Judge AI..."
-                  />
-                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px'}}>
-                    <button 
-                      className="btn btn-success" 
-                      onClick={handleSubmitArgument}
-                      disabled={!argument.trim()}>
-                      Submit to Judge
-                    </button>
+
+                  <div className="prompt-box">
+                    <strong>THE CASE:</strong><br/><br/>
+                    {prompt}
+                  </div>
+
+                  <div className="input-section2">
+                    <h3 style={{fontSize: '24px', marginBottom: '15px', textAlign: 'center'}}>Your Argument:</h3>
+                    <textarea
+                      value={argument}
+                      onChange={(e) => setArgument(e.target.value)}
+                      placeholder="State your position and build your case. Use logic, evidence, and persuasive rhetoric to convince Judge AI..."
+                    />
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px', width: '85%', margin: '15px auto 0'}}>
+                      <span style={{fontSize: '16px', color: '#a0aec0'}}>{argument.length} characters</span>
+                      <button 
+                        className="btn btn-success" 
+                        onClick={handleSubmitArgument}
+                        disabled={!argument.trim()}
+                      >
+                        Submit to Judge
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -274,7 +280,7 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
               </div>
             )}
 
-            {/* Results Screen when  currentRound >= 3 */}
+            {/* Results Screen */}
             {gameState === 'results' && (
               <div>
                 <h2 style={{fontSize: '36px', textAlign: 'center', marginBottom: '30px'}}>
@@ -299,7 +305,7 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
               </div>
             )}
 
-            {/* Prints the results of game*/}
+            {/* End Screen */}
             {gameState === 'end' && (
               <div>
                 <h2 style={{fontSize: '48px', textAlign: 'center', marginBottom: '20px'}}>

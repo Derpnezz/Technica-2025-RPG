@@ -122,21 +122,22 @@ padding: 15px;
 margin: 20px auto;
 font-size: 24px;
 line-height: 1.2;
-width : auto;
-max-width : 1000px;
+width: auto;
+max-width: 1000px;
+}
 
-}
-.playingdiv{
-  padding : 0px;
-  margin : 0px;
-  display : flex;
-  justify-content: center;
-  align-items: center;
-}
-.input-section {
-display : flex;
+.playingdiv {
+padding: 0px;
+margin: 0px;
+display: flex;
 justify-content: center;
-align-items : center;
+align-items: center;
+}
+
+.input-section {
+display: flex;
+justify-content: center;
+align-items: center;
 flex-direction: column;
 }
 
@@ -148,18 +149,26 @@ border: 2px solid #5b82f7;
 border-radius: 12px;
 background: rgba(255,255,255,0.1);
 color: white;
-margin-inline : 30px;
+margin-inline: 30px;
 }
 
 .input-section input::placeholder {
 color: rgba(255,255,255,0.5);
 }
 
+.input-section2 {
+display: flex;
+justify-content: center;
+align-items: center;
+flex-direction: column;
+margin: 30px 0;
+}
+
 .input-section2 textarea {
 width: 85%;
 font-size: 18px;
-padding : 20px;
-margin : 20px auto;
+padding: 20px;
+margin: 20px auto;
 border: 2px solid #5b82f7;
 border-radius: 12px;
 background: rgba(255,255,255,0.1);
@@ -168,25 +177,11 @@ resize: vertical;
 min-height: 150px;
 font-family: inherit;
 }
-.input-section textarea {
-width: 100%;
-padding: 20px;
-font-size: 18px;
-border: 2px solid #5b82f7;
-border-radius: 12px;
-background: rgba(255,255,255,0.1);
-color: white;
-resize: vertical;
-min-height: 250px;
-font-family: inherit;
-}
 
-.input-section textarea::placeholder {
-color: rgba(255,255,255,0.5);
-}
 .input-section2 textarea::placeholder {
 color: rgba(255,255,255,0.5);
 }
+
 .button-group {
 display: flex;
 gap: 20px;

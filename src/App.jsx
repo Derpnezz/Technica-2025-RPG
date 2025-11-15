@@ -243,7 +243,7 @@ FEEDBACK: [Constructive feedback in 2-3 sentences]`
                   {prompt}
                 </div>
                 {/*input section for the second part of the round */}
-                <div className="input-section">
+                <div className="input-section2">
                   <h3 style={{fontSize: '24px', marginBottom: '15px'}}>Your Argument:</h3>
                   <textarea
                     value={argument}

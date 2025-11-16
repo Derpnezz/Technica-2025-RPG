@@ -12,7 +12,7 @@ const model = genAI.getGenerativeModel({
 
 async function run() {
   const result = await model.generateContent(
-    "Write a poem about AI in Shakespeare style."
+    "Write me about the american revolution."
   );
 
   console.log(result.response.text());

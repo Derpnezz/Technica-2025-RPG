@@ -6,6 +6,10 @@ import FeedbackToast from './components/FeedbackToast';
 import { parseVerdict } from './utils/feedback';
 import Storyboard from './components/Storyboard';
 import { SAMPLE_CASES } from './data/storyboards/sampleCase';
+import {GoogleGenerativeAI,} from "@google/generative-ai";
+
+
+
 
 
 const API_URL = 'http://localhost:3000/api';

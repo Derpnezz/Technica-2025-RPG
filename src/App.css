@@ -280,7 +280,7 @@ border: 2px solid rgba(59, 94, 249, 0.893);
 border-radius: 15px;
 background: rgb(248, 245, 245);
 backdrop-filter: blur(10px);
-color: white;
+color: rgb(0, 0, 0);
 resize: vertical;
 min-height: 150px;
 font-family: inherit;
@@ -500,9 +500,13 @@ font-size: 22px;
   width: 680px; max-width: 92%; background: rgba(10,10,20,0.8); padding: 28px; border-radius: 16px; color: white; border: 1px solid rgba(255,255,255,0.06);
   box-shadow: 0 20px 60px rgba(0,0,0,0.6);
 }
-.tutorial-card h3 { margin-top: 0 }
-.tutorial-card p { opacity: 0.95; line-height: 1.6 }
-.tutorial-actions { display:flex; gap:12px; justify-content:flex-end; margin-top:18px }
+.tutorial-card h3 { margin-top: 0; }
+.tutorial-card p { opacity: 0.95; line-height: 1.6; }
+.tutorial-actions { 
+  display:flex; 
+  gap:20px; 
+  justify-content:flex-end; 
+ }
 
 /* Timer progress */
 .progress-bar { width: 60%; margin: 20px auto 0 }

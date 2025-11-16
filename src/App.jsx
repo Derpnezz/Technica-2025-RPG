@@ -425,7 +425,7 @@ Be encouraging but honest. This is a learning experience for a rookie lawyer.`
         </button>
 
         {showTutorial && (
-          <div className="tutorial-modal">
+          <div className="tutorial-modal" onClick={closeTutorialModal}>
             <div className="tutorial-card" onClick={(e) => e.stopPropagation()}>
               <h3>⚖️ How to Defend Justice</h3>
               <p>Welcome, Rookie Lawyer/Debater! You’ll handle three cases involving tech injustice or any debate topic, such as national identity or social issues.</p>

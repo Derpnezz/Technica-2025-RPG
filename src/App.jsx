@@ -1,24 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Scale, Clock, Gavel, Sparkles, Wand2, Trophy, Zap, Star } from 'lucide-react';
 import './App.css';
-import Header from './components/Header';
-import FeedbackToast from './components/FeedbackToast';
-import { parseVerdict } from './utils/feedback';
-import Storyboard from './components/Storyboard';
-import { SAMPLE_CASES } from './data/storyboards/sampleCase';
-import {GoogleGenerativeAI,} from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
+const apiKey = 'AIzaSyB3QdxUohqDhExOFXfWh5kiD_rSahva8HI';
+const genAI = new GoogleGenerativeAI(apiKey);
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.0-flash",
+});
 
-
-
-
-const API_URL = 'http://localhost:3000/api';
-
+const CASE_THEMES = [
+  "digital privacy rights for underrepresented communities",
+  "algorithmic bias in hiring and lending systems",
+  "fair access to tech education for low-income students",
+  "online harassment targeting marginalized groups",
+  "data exploitation of vulnerable populations",
+  "accessibility barriers in digital platforms"
+];
 
 export default function App() {
   const [fadeClass, setFadeClass] = useState("fade-in");
   const [started, setStarted] = useState(false);
-  const [gameState, setGameState] = useState('input'); // input, playing, judging, results, end
+  const [gameState, setGameState] = useState('input');
   const [currentRound, setCurrentRound] = useState(1);
   const [prompt, setPrompt] = useState('');
   const [customPrompt, setCustomPrompt] = useState('');
@@ -31,15 +34,11 @@ export default function App() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [toast, setToast] = useState({ open: false, content: null });
   const [showTutorial, setShowTutorial] = useState(false);
-  const [showStoryboard, setShowStoryboard] = useState(false);
-  const [currentCase, setCurrentCase] = useState(null);
 
-  // Initial fade in
   useEffect(() => {
     setFadeClass("fade-in");
   }, []);
 
-  // Timer countdown
   useEffect(() => {
     if (gameState === 'playing' && timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
@@ -56,40 +55,47 @@ export default function App() {
       setShowTutorial(true);
     }, 800);
   };
+
   const generateAIPrompt = async () => {
     setIsGenerating(true);
-    setCustomPrompt(''); // Clear the custom prompt input
+    setCustomPrompt('');
     try {
+      const theme = CASE_THEMES[Math.floor(Math.random() * CASE_THEMES.length)];
+      const difficulty = currentRound === 1 ? 'moderately challenging' : currentRound === 2 ? 'complex' : 'highly difficult';
+      
+      const result = await model.generateContent(
+        `You are creating a legal case for a rookie lawyer defending clients from marginalized backgrounds.
+        
+Generate a ${difficulty} case about: ${theme}
 
-      const response = await fetch(`${API_URL}/generate-prompt`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentRound })
-      });
+The case should:
+- Feature a specific client from an underrepresented community
+- Present a real-world adjacent scenario with clear stakes
+- Require the lawyer to defend against discrimination, bias, or unfair treatment
+- Be appropriate for round ${currentRound} of 3 (increasing complexity)
+
+Format: Return ONLY the case description as a compelling scenario (2-4 sentences). Start with "Your client..." and describe the situation they face.
+
+Example: "Your client, Maria, a single mother from a low-income neighborhood, was denied a job interview by an AI hiring system despite having the required qualifications. The algorithm flagged her zip code as 'high risk' based on discriminatory data patterns. She needs you to argue that this automated decision violates her rights to fair employment opportunities."`
+      );
       
-      const data = await response.json();
-      
-      if (data.error) {
-        setPrompt(data.fallback || 'Should social media companies be held legally responsible for misinformation spread on their platforms?');
-      } else {
-        setPrompt(data.prompt);
-      }
-      
+      const generatedPrompt = result.response.text().trim();
+      setPrompt(generatedPrompt);
       setGameState('playing');
       setTimeLeft(120);
       setArgument('');
     } catch (error) {
       console.error('Error generating prompt:', error);
-      setPrompt('Should social media companies be held legally responsible for misinformation spread on their platforms?');
-      setGameState('playing');
-      setTimeLeft(120);
+      alert('Failed to generate case. Please try again or enter your own case.');
+      setIsGenerating(false);
+      return;
     }
     setIsGenerating(false);
   };
 
   const useCustomPrompt = () => {
     if (!customPrompt.trim()) {
-      setToast({ open: true, content: { type: 'error', title: 'Missing topic', message: 'Please enter a debate topic before using it.' } });
+      alert('Please enter a case scenario first!');
       return;
     }
     setPrompt(customPrompt);
@@ -99,51 +105,76 @@ export default function App() {
   };
 
   const handleSubmitArgument = async () => {
-    if (!argument.trim()) { // warns the user to enter something 
-      setToast({ open: true, content: { type: 'error', title: 'Empty argument', message: 'Write your argument before submitting so Judge AI can evaluate it.' } });
+    if (!argument.trim()) {
+      alert('Please write your argument before submitting!');
       return;
     }
-
 
     setGameState('judging');
     
     try {
-      const response = await fetch(`${API_URL}/judge-argument`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, argument })
-      });
-      
-      const data = await response.json();
+      const result = await model.generateContent(
+        `You are Judge Gemini presiding over a case involving social justice and marginalized communities.
 
+CASE: ${prompt}
+
+ROOKIE LAWYER'S DEFENSE ARGUMENT:
+${argument}
+
+As a judge committed to equity and justice, evaluate this defense argument carefully.
+
+Consider:
+1. Does the argument show empathy and understanding of marginalized perspectives?
+2. Are there concrete examples or evidence cited?
+3. Is the legal reasoning sound and persuasive?
+4. Does it address systemic issues or just surface-level concerns?
+
+Provide your evaluation in this EXACT format:
+
+SCORE: [number from 0-100]
+VERDICT: [In 2-3 sentences, explain your ruling on whether this defense would succeed]
+FEEDBACK: [In 2-3 sentences, give constructive advice on how to strengthen this argument for defending marginalized clients]
+
+Be encouraging but honest. This is a learning experience for a rookie lawyer.`
+      );
+
+      const judgeResponse = result.response.text();
       
-      // normalize response: server returns structured JSON when available
-      const parsedData = data.error ? data.fallback : data;
-      const feedback = parseVerdict(parsedData);
-      if (feedback.score >= 80) {
+      const scoreMatch = judgeResponse.match(/SCORE:\s*(\d+)/i);
+      const score = scoreMatch ? parseInt(scoreMatch[1]) : 0;
+
+      if (!scoreMatch) {
+        throw new Error('Could not parse score from response');
+      }
+
+      if (score >= 80) {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
       }
 
-      // Present verdict text in the results box (prefer human-friendly fields)
-      const verdictText = parsedData.verdict || (typeof parsedData === 'string' ? parsedData : JSON.stringify(parsedData, null, 2));
-      const feedbackText = parsedData.feedback || feedback.message || '';
-
-      setVerdict(`${verdictText}\n\nFEEDBACK: ${feedbackText}`);
-      setScores([...scores, feedback.score]);
-      setTotalScore(totalScore + feedback.score);
+      setVerdict(judgeResponse);
+      setScores([...scores, score]);
+      setTotalScore(totalScore + score);
       setGameState('results');
 
-      setToast({ open: true, content: { type: feedback.score >= 75 ? 'success' : 'info', title: feedback.title, message: feedback.message } });
+      const feedbackType = score >= 85 ? 'success' : score >= 70 ? 'info' : 'warning';
+      const feedbackTitle = score >= 85 ? '⭐ Excellent Defense!' : score >= 70 ? '💪 Solid Argument' : '📚 Keep Learning';
+      const feedbackMsg = score >= 85 ? 'Your defense strongly advocates for justice!' : 
+                          score >= 70 ? 'Good reasoning, but consider adding more specific examples.' :
+                          'Focus on concrete evidence and empathy for your client.';
+
+      setToast({ 
+        open: true, 
+        content: { 
+          type: feedbackType, 
+          title: feedbackTitle, 
+          message: feedbackMsg
+        } 
+      });
     } catch (error) {
       console.error('Error getting verdict:', error);
-      // Fallback friendly feedback
-      const fallback = { score: 75, title: 'Score: 75/100', message: 'A solid argument. Tip: add a concrete example to strengthen your claims.' };
-      setVerdict('ERROR RETRIEVING GEMINI RESPONSE');
-      setScores([...scores, fallback.score]);
-      setTotalScore(totalScore + fallback.score);
-      setGameState('results');
-      setToast({ open: true, content: { type: 'info', title: fallback.title, message: fallback.message } });
+      alert('Failed to get verdict from Judge AI. Please try submitting again.');
+      setGameState('playing');
     }
   };
 
@@ -184,7 +215,6 @@ export default function App() {
   return (
     <>
       <div id="full-screen">
-  <Header onOpenTutorial={() => setShowTutorial(true)} onOpenStory={() => setShowStoryboard(true)} />
         {!started && (
           <main id="main-wrapper" className={fadeClass}>
             <div id="top">
@@ -194,8 +224,8 @@ export default function App() {
             </div>
 
             <p id="description">
-              AI Debate Arena - Practice your argumentation skills in a safe space.
-              Face Judge AI in 3 challenging rounds.
+              You're a rookie lawyer defending clients from marginalized backgrounds.
+              Face 3 cases involving digital privacy, algorithmic bias, and social justice.
             </p>
 
             <button id="start-btn" onClick={startLesson}>
@@ -206,40 +236,38 @@ export default function App() {
 
         {started && (
           <main id="main2-wrapper">
-            {/* Input Screen */}
             {gameState === 'input' && (
               <div>
                 <h2 style={{fontSize: '36px', textAlign: 'center', marginBottom: '30px'}}>
-                  Round {currentRound} of 3
+                  Case {currentRound} of 3
                 </h2>
                 
                 <div className="input-section">
                   <input
                     type="text"
-                    placeholder="Enter your own debate topic here..."
+                    placeholder="Enter your own case scenario or generate one with AI..."
                     value={customPrompt}
                     onChange={(e) => setCustomPrompt(e.target.value)}
                   />
                   
                   <div className="button-group">
                     <button className="btn btn-primary" onClick={useCustomPrompt}>
-                      Use My Topic
+                      Use My Case
                     </button>
                     <button className="btn btn-primary" onClick={generateAIPrompt} disabled={isGenerating}>
                       <Wand2 size={20} />
-                      {isGenerating ? 'Generating...' : 'Generate AI Topic'}
+                      {isGenerating ? 'Generating Case...' : 'Generate AI Case'}
                     </button>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Playing Screen */}
             {gameState === 'playing' && (
               <div className="playingdiv">
                 <div style={{width: '100%'}}>
                   <div className="round-header">
-                    <div style={{fontSize: '24px', fontWeight: 'bold'}}>Round {currentRound} of 3</div>
+                    <div style={{fontSize: '24px', fontWeight: 'bold'}}>Case {currentRound} of 3</div>
                     <div className={`timer ${timeLeft < 30 ? 'warning' : ''}`}>
                       <Clock size={32} style={{display: 'inline', marginRight: '10px'}} />
                       {formatTime(timeLeft)}
@@ -247,13 +275,13 @@ export default function App() {
                   </div>
 
                   <div className="prompt-box">
-                    <strong>THE CASE:</strong><br/><br/>
+                    <strong>⚖️ THE CASE:</strong><br/><br/>
                     {prompt}
                   </div>
 
                   <div className="playing-extra" style={{textAlign: 'center'}}>
                     <div className="progress-wrap">
-                      <div className="progress-bar" aria-hidden>
+                      <div className="progress-bar" aria-hidden="true">
                         <div className="progress-fill" style={{width: `${progressPercent}%`}} />
                       </div>
                     </div>
@@ -261,11 +289,11 @@ export default function App() {
                   </div>
 
                   <div className="input-section2">
-                    <h3 style={{fontSize: '24px', marginBottom: '15px', textAlign: 'center'}}>Your Argument:</h3>
+                    <h3 style={{fontSize: '24px', marginBottom: '15px', textAlign: 'center'}}>Your Defense Argument:</h3>
                     <textarea
                       value={argument}
                       onChange={(e) => setArgument(e.target.value)}
-                      placeholder="State your position and build your case. Use logic, evidence, and persuasive rhetoric to convince Judge AI..."
+                      placeholder="Defend your client with empathy, evidence, and legal reasoning. Consider systemic issues and cite specific examples of injustice..."
                     />
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px', width: '85%', margin: '15px auto 0'}}>
                       <span style={{fontSize: '16px', color: '#a0aec0'}}>{argument.length} characters</span>
@@ -274,7 +302,7 @@ export default function App() {
                         onClick={handleSubmitArgument}
                         disabled={!argument.trim()}
                       >
-                        Submit to Judge
+                        Submit Defense
                       </button>
                     </div>
                   </div>
@@ -282,7 +310,6 @@ export default function App() {
               </div>
             )}
 
-            {/* Judging Screen */}
             {gameState === 'judging' && (
               <div style={{textAlign: 'center', paddingTop: '100px'}}>
                 <div style={{position: 'relative', display: 'inline-block'}}>
@@ -292,12 +319,11 @@ export default function App() {
                 <h2 style={{fontSize: '36px', marginBottom: '30px'}}>⚖️ Judge Gemini is Deliberating...</h2>
                 <div className="loading">
                   <div className="spinner"></div>
-                  <span>✨ Analyzing your argument with AI magic...</span>
+                  <span>✨ Analyzing your defense with AI wisdom...</span>
                 </div>
               </div>
             )}
 
-            {/* Results Screen */}
             {gameState === 'results' && (
               <div>
                 {showConfetti && (
@@ -317,11 +343,11 @@ export default function App() {
                 </div>
                 
                 <h2 style={{fontSize: '36px', textAlign: 'center', marginBottom: '30px'}}>
-                  ⚖️ Round {currentRound} Verdict
+                  ⚖️ Case {currentRound} Verdict
                 </h2>
                 
                 <div className="verdict-box">
-                  <div style={{fontWeight: 800, marginBottom: 10}}>Judge Summary</div>
+                  <div style={{fontWeight: 800, marginBottom: 10}}>Judge's Decision</div>
                   {verdict}
                 </div>
 
@@ -329,7 +355,7 @@ export default function App() {
                   {currentRound < 3 ? (
                     <button className="btn btn-primary" onClick={nextRound}>
                       <Zap size={20} />
-                      Next Round →
+                      Next Case →
                     </button>
                   ) : (
                     <button className="btn btn-success" onClick={nextRound}>
@@ -341,7 +367,6 @@ export default function App() {
               </div>
             )}
 
-            {/* Final Results */}
             {gameState === 'end' && (
               <div>
                 <div style={{textAlign: 'center', marginBottom: '30px'}}>
@@ -358,16 +383,16 @@ export default function App() {
                   {Math.round(totalScore / 3)}/100
                 </div>
                 <p style={{textAlign: 'center', fontSize: '24px', marginBottom: '40px', color: 'rgba(255,255,255,0.9)'}}>
-                  {Math.round(totalScore / 3) >= 90 ? '🏆 LEGENDARY DEBATER!' : 
-                   Math.round(totalScore / 3) >= 75 ? '⭐ SKILLED ADVOCATE!' :
-                   Math.round(totalScore / 3) >= 60 ? '💪 SOLID PERFORMER!' :
-                   '📚 RISING STAR!'}
+                  {Math.round(totalScore / 3) >= 90 ? '🏆 JUSTICE CHAMPION!' : 
+                   Math.round(totalScore / 3) >= 75 ? '⭐ RISING ADVOCATE!' :
+                   Math.round(totalScore / 3) >= 60 ? '💪 DEDICATED DEFENDER!' :
+                   '📚 LEARNING LAWYER!'}
                 </p>
 
                 <div className="score-grid">
                   {scores.map((score, i) => (
                     <div key={i} className="score-card">
-                      <div className="label">Round {i + 1}</div>
+                      <div className="label">Case {i + 1}</div>
                       <div className="value">{score}</div>
                       <div style={{fontSize: '14px', marginTop: '10px'}}>
                         {score >= 90 ? '🌟' : score >= 75 ? '✨' : score >= 60 ? '💫' : '⭐'}
@@ -386,40 +411,51 @@ export default function App() {
             )}
           </main>
         )}
-  {/* Tutorial overlay */}
+
         {showTutorial && (
           <div className="tutorial-modal" onClick={() => setShowTutorial(false)}>
             <div className="tutorial-card" onClick={(e) => e.stopPropagation()}>
-              <h3>How to play</h3>
-              <p>Welcome to Objection! — AI Debate Arena. You will play 3 rounds. For each round:</p>
+              <h3>⚖️ How to Defend Justice</h3>
+              <p>Welcome, Rookie Lawyer! You'll defend 3 clients from marginalized backgrounds facing tech-related injustices.</p>
               <ul>
-                <li>Generate an AI topic or enter your own.</li>
-                <li>Compose a focused argument (use examples & evidence).</li>
-                <li>Submit to Judge AI and get a clear score and tips.</li>
+                <li><strong>Generate a case</strong> about digital privacy, algorithmic bias, online harassment, or tech access</li>
+                <li><strong>Build your defense</strong> with empathy, evidence, and legal reasoning (2 min per case)</li>
+                <li><strong>Get feedback</strong> from Judge Gemini on how to strengthen your advocacy</li>
               </ul>
-              <p>Try to reach a high average score. Use the feedback toast to get quick, actionable tips after each round.</p>
+              <p><strong>Tips:</strong> Cite specific examples, address systemic issues, and always center your client's perspective!</p>
               <div className="tutorial-actions">
-                <button className="btn btn-primary" onClick={() => setShowTutorial(false)}>Got it</button>
-                <button className="btn btn-primary" onClick={() => { setShowTutorial(false); }}>Start</button>
+                <button className="btn btn-primary" onClick={() => setShowTutorial(false)}>Ready to Defend!</button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Storyboard overlay */}
-        <Storyboard open={showStoryboard} onClose={() => setShowStoryboard(false)} onStartCase={(c) => {
-          setCurrentCase(c);
-          // preset the debate prompt to the case's entry prompt and close storyboard
-          if (c.entryPrompt) {
-            setPrompt(c.entryPrompt);
-            setGameState('playing');
-            setTimeLeft(120);
-          }
-          setShowStoryboard(false);
-        }} cases={SAMPLE_CASES} />
-
-        {/* Non-blocking feedback */}
-        <FeedbackToast open={toast.open} content={toast.content} onClose={() => setToast({ open: false, content: null })} />
+        {toast.open && (
+          <div style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            background: toast.content?.type === 'success' ? '#51cf66' : toast.content?.type === 'warning' ? '#ffd43b' : '#5b82f7',
+            color: 'white',
+            padding: '20px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            zIndex: 1000,
+            maxWidth: '300px'
+          }}>
+            <div style={{fontWeight: 'bold', marginBottom: '5px'}}>{toast.content?.title}</div>
+            <div>{toast.content?.message}</div>
+            <button onClick={() => setToast({ open: false, content: null })} style={{
+              marginTop: '10px',
+              background: 'rgba(255,255,255,0.2)',
+              border: 'none',
+              color: 'white',
+              padding: '5px 10px',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}>Close</button>
+          </div>
+        )}
       </div>
     </>
   );

@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function Header({ onOpenTutorial }) {
+export default function Header({ onOpenTutorial, onOpenStory }) {
   return (
     <header className="app-header" role="banner">
       <div className="brand">
@@ -13,6 +13,7 @@ export default function Header({ onOpenTutorial }) {
 
       <nav className="header-actions" role="navigation">
         <button className="btn btn-primary small" onClick={onOpenTutorial}>How it works</button>
+        <button className="btn btn-primary small" onClick={onOpenStory} style={{marginLeft:12}}>Story Mode</button>
       </nav>
     </header>
   )

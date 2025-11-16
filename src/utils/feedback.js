@@ -4,11 +4,16 @@ export function parseVerdict(raw) {
   if (!raw) return { score: 0, title: 'No verdict', message: 'No feedback available.' };
 
   if (typeof raw === 'object') {
-    return {
-      score: raw.score ?? 0,
-      title: raw.title ?? (raw.score ? `Score: ${raw.score}` : 'Verdict'),
-      message: raw.message ?? JSON.stringify(raw)
+    const score = raw.score ?? 0;
+    const title = raw.title ?? (score ? `Score: ${score}` : 'Verdict');
+    // build a concise message: prefer `feedback`, then `message`, then assemble highlights
+    let message = raw.feedback ?? raw.message ?? '';
+    if (!message && Array.isArray(raw.highlights) && raw.highlights.length) {
+      message = 'Highlights: ' + raw.highlights.join(' • ');
     }
+    if (!message) message = JSON.stringify(raw);
+
+    return { score, title, message, raw };
   }
 
   // If string, attempt to find a number score

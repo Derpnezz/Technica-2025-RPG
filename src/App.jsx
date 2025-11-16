@@ -35,6 +35,14 @@ export default function App() {
   const [toast, setToast] = useState({ open: false, content: null });
   const [showTutorial, setShowTutorial] = useState(false);
 
+  const openTutorialModal = () => {
+    setShowTutorial(true);
+  };
+
+  const closeTutorialModal = () => {
+    setShowTutorial(false);
+  };
+
   useEffect(() => {
     setFadeClass("fade-in");
   }, []);
@@ -347,7 +355,7 @@ Be encouraging but honest. This is a learning experience for a rookie lawyer.`
                 </h2>
                 
                 <div className="verdict-box">
-                  <div style={{fontWeight: 800, marginBottom: 10}}>Judge's Decision</div>
+                  <div style={{fontWeight: 800, marginBottom: 10}}>Judge Gemini's Decision</div>
                   {verdict}
                 </div>
 
@@ -412,8 +420,12 @@ Be encouraging but honest. This is a learning experience for a rookie lawyer.`
           </main>
         )}
 
+        <button className="info-button" onClick={openTutorialModal}>
+          i
+        </button>
+
         {showTutorial && (
-          <div className="tutorial-modal" onClick={() => setShowTutorial(false)}>
+          <div className="tutorial-modal" onClick={closeTutorialModal}>
             <div className="tutorial-card" onClick={(e) => e.stopPropagation()}>
               <h3>⚖️ How to Defend Justice</h3>
               <p>Welcome, Rookie Lawyer! You'll defend 3 clients from marginalized backgrounds facing tech-related injustices.</p>
@@ -424,7 +436,7 @@ Be encouraging but honest. This is a learning experience for a rookie lawyer.`
               </ul>
               <p><strong>Tips:</strong> Cite specific examples, address systemic issues, and always center your client's perspective!</p>
               <div className="tutorial-actions">
-                <button className="btn btn-primary" onClick={() => setShowTutorial(false)}>Ready to Defend!</button>
+                <button className="btn btn-primary" onClick={closeTutorialModal}>Ready to Defend!</button>
               </div>
             </div>
           </div>

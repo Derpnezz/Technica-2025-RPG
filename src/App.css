@@ -497,7 +497,7 @@ font-size: 22px;
   z-index: 2000;
 }
 .tutorial-card {
-  width: 680px; max-width: 92%; background: rgba(10,10,20,0.8); padding: 28px; border-radius: 16px; color: white; border: 1px solid rgba(255,255,255,0.06);
+  width: 680px; max-width: 92%; background: rgba(10,10,20,0.95); padding: 28px; border-radius: 16px; color: white; border: 1px solid rgba(255,255,255,0.06);
   box-shadow: 0 20px 60px rgba(0,0,0,0.6);
 }
 .tutorial-card h3 { margin-top: 0; }
@@ -585,4 +585,36 @@ height: 100%;
 background: linear-gradient(90deg, #667eea, #764ba2);
 transition: width 0.3s ease;
 box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+.info-button {
+  position: fixed; /* Positions the button relative to the viewport */
+  bottom: 20px;    /* 20px from the bottom of the screen */
+  left: 20px;      /* 20px from the left of the screen */
+  background-color: #007bff; /* Example background color */
+  color: white;    /* Text color */
+  border: none;
+  border-radius: 50%; /* Makes the button round */
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 1000;   /* Ensures the button is above other content */
+}
+
+.info-button:hover {
+  background-color: #0056b3;
+}
+
+.info-popup {
+  position: fixed; /* Positions the popup relative to the viewport */
+  bottom: 70px;    /* Position above the button */
+  left: 20px;
+  background-color: white;
+  padding: 15px;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  z-index: 999;
+  width: 200px;
+  border-radius: 5px;
 }

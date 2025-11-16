@@ -87,7 +87,7 @@ export default function App() {
   };
 
   const handleSubmitArgument = async () => {
-    if (!argument.trim()) {
+    if (!argument.trim()) { // warns the user to enter something 
       alert('Please write your argument before submitting!');
       return;
     }

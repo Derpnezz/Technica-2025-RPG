@@ -136,7 +136,7 @@ Consider:
 2. Are there concrete examples or evidence cited?
 3. Is the legal reasoning sound and persuasive?
 4. Does it address systemic issues or just surface-level concerns?
-
+5. If the prompt and arguenment is not about underrepresented communities or Tech-related just grade how you want to grade it grade it like a debate club agruement. 
 Provide your evaluation in this EXACT format:
 
 SCORE: [number from 0-100]
@@ -232,8 +232,8 @@ Be encouraging but honest. This is a learning experience for a rookie lawyer.`
             </div>
 
             <p id="description">
-              You're a rookie lawyer defending clients from marginalized backgrounds.
-              Face 3 cases involving digital privacy, algorithmic bias, and social justice.
+              You're a rookie lawyer/ debater defending clients or your position on arguement from marginalized backgrounds.
+              Face 3 cases involving digital privacy, algorithmic bias, and social justice or any other debate Problem.
             </p>
 
             <button id="start-btn" onClick={startLesson}>
@@ -301,7 +301,7 @@ Be encouraging but honest. This is a learning experience for a rookie lawyer.`
                     <textarea
                       value={argument}
                       onChange={(e) => setArgument(e.target.value)}
-                      placeholder="Defend your client with empathy, evidence, and legal reasoning. Consider systemic issues and cite specific examples of injustice..."
+                      placeholder="Write your argument defending your client or position here to sway the judges. . .  "
                     />
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px', width: '85%', margin: '15px auto 0'}}>
                       <span style={{fontSize: '16px', color: '#a0aec0'}}>{argument.length} characters</span>
@@ -428,9 +428,9 @@ Be encouraging but honest. This is a learning experience for a rookie lawyer.`
           <div className="tutorial-modal" onClick={closeTutorialModal}>
             <div className="tutorial-card" onClick={(e) => e.stopPropagation()}>
               <h3>⚖️ How to Defend Justice</h3>
-              <p>Welcome, Rookie Lawyer! You'll defend 3 clients from marginalized backgrounds facing tech-related injustices.</p>
+              <p>Welcome, Rookie Lawyer/Debater! You’ll handle three cases involving tech injustice or any debate topic, such as national identity or social issues.</p>
               <ul>
-                <li><strong>Generate a case</strong> about digital privacy, algorithmic bias, online harassment, or tech access</li>
+                <li><strong>Generate a case</strong> about digital privacy, algorithmic bias, online harassment, or tech access, or any other debate topic</li>
                 <li><strong>Build your defense</strong> with empathy, evidence, and legal reasoning (2 min per case)</li>
                 <li><strong>Get feedback</strong> from Judge Gemini on how to strengthen your advocacy</li>
               </ul>

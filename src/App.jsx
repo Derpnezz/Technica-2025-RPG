@@ -40,6 +40,7 @@ export default function App() {
   };
 
   const closeTutorialModal = () => {
+    new Audio("audio/button_click.ogg").play();
     setShowTutorial(false);
   };
 
@@ -57,6 +58,7 @@ export default function App() {
   }, [timeLeft, gameState]);
 
   const startLesson = () => {
+    new Audio("audio/button_click.ogg").play();
     setFadeClass("fade-out");
     setTimeout(() => {
       setStarted(true);
@@ -65,6 +67,7 @@ export default function App() {
   };
 
   const generateAIPrompt = async () => {
+    new Audio("audio/button_click.ogg").play();
     setIsGenerating(true);
     setCustomPrompt('');
     try {
@@ -102,6 +105,7 @@ Example: "Your client, Maria, a single mother from a low-income neighborhood, wa
   };
 
   const useCustomPrompt = () => {
+    new Audio("audio/button_click.ogg").play();
     if (!customPrompt.trim()) {
       alert('Please enter a case scenario first!');
       return;
@@ -113,6 +117,7 @@ Example: "Your client, Maria, a single mother from a low-income neighborhood, wa
   };
 
   const handleSubmitArgument = async () => {
+    new Audio("audio/button_click.ogg").play();
     if (!argument.trim()) {
       alert('Please write your argument before submitting!');
       return;
@@ -187,6 +192,7 @@ Be encouraging but honest. This is a learning experience for a rookie lawyer.`
   };
 
   const nextRound = () => {
+    new Audio("audio/button_click.ogg").play();
     if (currentRound < 3) {
       setCurrentRound(currentRound + 1);
       setGameState('input');
@@ -199,6 +205,7 @@ Be encouraging but honest. This is a learning experience for a rookie lawyer.`
   };
 
   const restartGame = () => {
+    new Audio("audio/button_click.ogg").play();
     setStarted(false);
     setGameState('input');
     setCurrentRound(1);

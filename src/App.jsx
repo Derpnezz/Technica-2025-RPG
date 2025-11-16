@@ -3,7 +3,7 @@ import { Scale, Clock, Gavel, Sparkles, Wand2, Trophy, Zap, Star } from 'lucide-
 import './App.css';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const apiKey = 'AIzaSyB3QdxUohqDhExOFXfWh5kiD_rSahva8HI';
+const apiKey = process.env.REACT_APP_GOOGLE_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({
   model: "gemini-2.0-flash",

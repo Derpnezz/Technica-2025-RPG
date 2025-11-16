@@ -15,7 +15,8 @@ const CASE_THEMES = [
   "fair access to tech education for low-income students",
   "online harassment targeting marginalized groups",
   "data exploitation of vulnerable populations",
-  "accessibility barriers in digital platforms"
+  "accessibility barriers in digital platforms",
+  "Any other debate topic such as national identity, social issues, etc.",
 ];
 
 export default function App() {
@@ -75,17 +76,38 @@ export default function App() {
       const difficulty = currentRound === 1 ? 'moderately challenging' : currentRound === 2 ? 'complex' : 'highly difficult';
       
       const result = await model.generateContent(
-        `You are creating a legal case for a rookie lawyer defending clients from marginalized backgrounds.
-        
-Generate a ${difficulty} case about: ${theme}
+        `Generate a unique legal case scenario for a debate practice program.
 
-The case should:
-- Feature a specific client from an underrepresented community
-- Present a real-world adjacent scenario with clear stakes
-- Require the lawyer to defend against discrimination, bias, or unfair treatment
-- Be appropriate for round ${currentRound} of 3 (increasing complexity)
+Round Information:
+- Current Round: ${currentRound} of 3
+- Theme for this round: ${theme}
+- Difficulty: ${difficulty}
 
-Format: Return ONLY the case description as a compelling scenario (2-4 sentences). Start with "Your client..." and describe the situation they face.
+Rules:
+- Use a **new, distinct client name** that has not appeared in any previous responses.
+- Base the scenario around the **theme** for this round.
+- Match the **difficulty** level provided:
+  • Easy → simple unfair treatment or bias  
+  • Medium → more nuanced or subtle discrimination  
+  • Hard → complex, systemic, or high-impact injustice  
+- Each case must center an individual from an **underrepresented community**.
+- The scenario must be **completely different** from any previously generated cases.
+
+Case Requirements:
+- Start with **"Your client..."**
+- Write a compelling scenario in **2–4 sentences**
+- Clearly describe the stakes and the injustice they face
+- The scenario must require meaningful defense against discrimination, bias, or unfair treatment
+- The situation should feel realistic, socially relevant, and debate-worthy
+
+Never repeat:
+- A client name used before
+- A previously used setting (e.g., school, workplace, courtroom, hospital)
+- The same type of discrimination or injustice as earlier rounds
+- The same core storyline or conflict pattern
+
+Output:
+Return ONLY the final case description. No explanations, no lists, no extra formatting.
 
 Example: "Your client, Maria, a single mother from a low-income neighborhood, was denied a job interview by an AI hiring system despite having the required qualifications. The algorithm flagged her zip code as 'high risk' based on discriminatory data patterns. She needs you to argue that this automated decision violates her rights to fair employment opportunities."`
       );

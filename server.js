@@ -45,54 +45,30 @@ app.post('/api/judge-argument', async (req, res) => {
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
-    // Ask Gemini to return a strict JSON object so the frontend can render structured feedback
-    const promptText = `You are Judge Gemini, a witty and charismatic AI judge in an exciting debate competition. Respond in JSON only.
+    const result = await model.generateContent(
+      `You are Judge Gemini, a witty and charismatic AI judge in an exciting debate competition! 🎭
 
 CASE: ${prompt}
 
-DEBATER_ARGUMENT:
+DEBATER'S ARGUMENT:
 ${argument}
 
-Evaluate the argument and return a JSON object with the following keys:
-- score: integer between 0 and 100
-- verdict: short string (2-3 sentences) with personality
-- feedback: short, actionable tips (2-3 sentences)
-- highlights: array of 1-3 short strings pointing out strengths or weaknesses
-- references: optional array of objects with {title, url} if appropriate (can be empty)
+Evaluate this argument with personality and flair! Provide:
+1. A score out of 100
+2. An entertaining verdict with some personality
+3. Constructive feedback that motivates improvement
 
-Return ONLY valid JSON (no extra text).`; 
+Format your response EXACTLY as:
+SCORE: [number]
+VERDICT: [Your entertaining ruling in 2-3 sentences with personality!]
+FEEDBACK: [Constructive and encouraging feedback in 2-3 sentences]`
+    );
 
-    const result = await model.generateContent(promptText);
-    const raw = result.response.text();
-
-    // Try to parse as JSON. If parsing fails, try to extract a JSON block.
-    let parsed;
-    try {
-      parsed = JSON.parse(raw);
-    } catch (e) {
-      // attempt to extract JSON substring
-      const jsonMatch = raw.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        try { parsed = JSON.parse(jsonMatch[0]); } catch (e2) { parsed = null; }
-      }
-    }
-
-    if (!parsed) {
-      console.warn('Failed to parse Gemini JSON response, falling back to text parsing');
-      // fallback: try to extract a numeric score and return minimal structure
-      const scoreMatch = raw.match(/(SCORE:\s*)(\d{1,3})/i) || raw.match(/(\b)(\d{1,3})(\/100)/);
-      const score = scoreMatch ? Number(scoreMatch[2]) : 70;
-      return res.json({
-        verdict: raw,
-        score
-      });
-    }
-
-    // Ensure types and bounds
-    const score = Number(parsed.score || 0);
-    parsed.score = Math.max(0, Math.min(100, isNaN(score) ? 0 : score));
-
-    res.json(parsed);
+    const verdict = result.response.text();
+    const scoreMatch = verdict.match(/SCORE:\s*(\d+)/i);
+    const score = scoreMatch ? parseInt(scoreMatch[1]) : 70;
+    
+    res.json({ verdict, score });
   } catch (error) {
     console.error('Error judging argument:', error);
     res.status(500).json({ 

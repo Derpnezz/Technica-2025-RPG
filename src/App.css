@@ -262,12 +262,31 @@ box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 
 .input-section textarea:focus {
 outline: none;
-border-color: #667eea;
+border-color: #1c45ff;
 background: rgba(255, 255, 255, 0.15);
 box-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
 }
-
-
+.input-section2 {
+display: flex;
+align-items: center;
+flex-direction: column;
+}
+.input-section2 textarea {
+  width: 85%;
+padding: 20px 25px;
+font-size: 18px;
+margin : 0px auto;
+border: 2px solid rgba(59, 94, 249, 0.893);
+border-radius: 15px;
+background: rgb(248, 245, 245);
+backdrop-filter: blur(10px);
+color: white;
+resize: vertical;
+min-height: 150px;
+font-family: inherit;
+transition: all 0.3s ease;
+box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
 .input-section textarea::placeholder {
 color: rgba(255, 255, 255, 0.6);
 
@@ -487,7 +506,7 @@ font-size: 22px;
 
 /* Timer progress */
 .progress-bar { width: 60%; margin: 20px auto 0 }
-.playingdiv .progress-wrap { display:flex; justify-content:center }
+.playingdiv .progress-wrap { display:flex; justify-content:center; align-items:center; flex-direction:column }
 .progress-bar .progress-fill { height: 10px }
 
 .spinner {

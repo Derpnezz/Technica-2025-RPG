@@ -233,7 +233,7 @@ export default function App() {
             {/* Playing Screen */}
             {gameState === 'playing' && (
               <div className="playingdiv">
-                <div style={{width: '100%', maxWidth: '1200px'}}>
+                <div style={{width: '100%'}}>
                   <div className="round-header">
                     <div style={{fontSize: '24px', fontWeight: 'bold'}}>Round {currentRound} of 3</div>
                     <div className={`timer ${timeLeft < 30 ? 'warning' : ''}`}>

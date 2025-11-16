@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Scale, Clock, Gavel, Sparkles, Wand2, Trophy, Zap, Star } from 'lucide-react';
 import './App.css';
 
+
 const API_URL = 'http://localhost:3000/api';
 
+
 export default function App() {
-  const [fadeClass, setFadeClass] = useState("fade-in"); 
+  const [fadeClass, setFadeClass] = useState("fade-in");
   const [started, setStarted] = useState(false);
-  const [gameState, setGameState] = useState('input'); 
+  const [gameState, setGameState] = useState('input'); // input, playing, judging, results, end
   const [currentRound, setCurrentRound] = useState(1);
   const [prompt, setPrompt] = useState('');
   const [customPrompt, setCustomPrompt] = useState('');
@@ -19,12 +21,12 @@ export default function App() {
   const [totalScore, setTotalScore] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
 
-// The start of the fade in 
+  // Initial fade in
   useEffect(() => {
     setFadeClass("fade-in");
   }, []);
 
-// Timer
+  // Timer countdown
   useEffect(() => {
     if (gameState === 'playing' && timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
@@ -42,7 +44,9 @@ export default function App() {
   };
   const generateAIPrompt = async () => {
     setIsGenerating(true);
+    setCustomPrompt(''); // Clear the custom prompt input
     try {
+
       const response = await fetch(`${API_URL}/generate-prompt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -81,10 +85,11 @@ export default function App() {
   };
 
   const handleSubmitArgument = async () => {
-    if (!argument.trim()) {
+    if (!argument.trim()) { // warns the user to enter something 
       alert('Please write your argument before submitting!');
       return;
     }
+
 
     setGameState('judging');
     
@@ -96,6 +101,7 @@ export default function App() {
       });
       
       const data = await response.json();
+
       
       let judgeResponse, score;
       
@@ -111,7 +117,6 @@ export default function App() {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
       }
-      
       setVerdict(judgeResponse);
       setScores([...scores, score]);
       setTotalScore(totalScore + score);
@@ -119,24 +124,25 @@ export default function App() {
     } catch (error) {
       console.error('Error getting verdict:', error);
       setVerdict('SCORE: 75\nVERDICT: A solid argument with good reasoning! Judge Gemini approves! 🎯\nFEEDBACK: Consider providing more specific examples to strengthen your position. Keep up the great work!');
+
       setScores([...scores, 75]);
       setTotalScore(totalScore + 75);
       setGameState('results');
     }
   };
 
-
-  // nextROund function
   const nextRound = () => {
     if (currentRound < 3) {
       setCurrentRound(currentRound + 1);
       setGameState('input');
       setCustomPrompt('');
+      setPrompt('');
+      setArgument('');
     } else {
       setGameState('end');
     }
   };
-  //restarts the game and the puts the user into the new round
+
   const restartGame = () => {
     setStarted(false);
     setGameState('input');
@@ -150,16 +156,15 @@ export default function App() {
     setTotalScore(0);
     setFadeClass('fade-in');
   };
-  // Prints out the seoncds and the minutes
+
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-// Main Html
+
   return (
     <>
-
       <div id="full-screen">
         {!started && (
           <main id="main-wrapper" className={fadeClass}>
@@ -182,13 +187,13 @@ export default function App() {
 
         {started && (
           <main id="main2-wrapper">
-            {/* Input Screen for the first part of a round */}
+            {/* Input Screen */}
             {gameState === 'input' && (
               <div>
                 <h2 style={{fontSize: '36px', textAlign: 'center', marginBottom: '30px'}}>
                   Round {currentRound} of 3
                 </h2>
-                {/*  THe prompt box */}
+                
                 <div className="input-section">
                   <input
                     type="text"
@@ -196,7 +201,7 @@ export default function App() {
                     value={customPrompt}
                     onChange={(e) => setCustomPrompt(e.target.value)}
                   />
-                  {/* buttons underneath the prompt box */}
+                  
                   <div className="button-group">
                     <button className="btn btn-primary" onClick={useCustomPrompt}>
                       Use My Topic
@@ -212,34 +217,38 @@ export default function App() {
 
             {/* Playing Screen */}
             {gameState === 'playing' && (
-              <div id = 'playingdiv'>
-                <div className="round-header">
-                  <div style={{fontSize: '24px', fontWeight: 'bold'}}>Round {currentRound} of 3</div>
-                  <div className={`timer ${timeLeft < 30 ? 'warning' : ''}`}>
-                    <Clock size={32} style={{display: 'inline', marginRight: '10px'}} />
-                    {formatTime(timeLeft)}
+              <div className="playingdiv">
+                <div style={{width: '100%', maxWidth: '1200px'}}>
+                  <div className="round-header">
+                    <div style={{fontSize: '24px', fontWeight: 'bold'}}>Round {currentRound} of 3</div>
+                    <div className={`timer ${timeLeft < 30 ? 'warning' : ''}`}>
+                      <Clock size={32} style={{display: 'inline', marginRight: '10px'}} />
+                      {formatTime(timeLeft)}
+                    </div>
                   </div>
-                </div>
-                {/*  The prompt in the round*/}
-                <div className="prompt-box">
-                  <strong>THE CASE:</strong><br/><br/>
-                  {prompt}
-                </div>
-                {/*input section for the second part of the round */}
-                <div className="input-section">
-                  <h3 style={{fontSize: '24px', marginBottom: '15px'}}>Your Argument:</h3>
-                  <textarea
-                    value={argument}
-                    onChange={(e) => setArgument(e.target.value)}
-                    placeholder="State your position and build your case. Use logic, evidence, and persuasive rhetoric to convince Judge AI..."
-                  />
-                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px'}}>
-                    <button 
-                      className="btn btn-success" 
-                      onClick={handleSubmitArgument}
-                      disabled={!argument.trim()}>
-                      Submit to Judge
-                    </button>
+
+                  <div className="prompt-box">
+                    <strong>THE CASE:</strong><br/><br/>
+                    {prompt}
+                  </div>
+
+                  <div className="input-section2">
+                    <h3 style={{fontSize: '24px', marginBottom: '15px', textAlign: 'center'}}>Your Argument:</h3>
+                    <textarea
+                      value={argument}
+                      onChange={(e) => setArgument(e.target.value)}
+                      placeholder="State your position and build your case. Use logic, evidence, and persuasive rhetoric to convince Judge AI..."
+                    />
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px', width: '85%', margin: '15px auto 0'}}>
+                      <span style={{fontSize: '16px', color: '#a0aec0'}}>{argument.length} characters</span>
+                      <button 
+                        className="btn btn-success" 
+                        onClick={handleSubmitArgument}
+                        disabled={!argument.trim()}
+                      >
+                        Submit to Judge
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

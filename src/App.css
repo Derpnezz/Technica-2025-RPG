@@ -196,6 +196,7 @@ animation: pulse 1s infinite;
 }
 
 .prompt-box {
+
 background: rgba(102, 126, 234, 0.2);
 backdrop-filter: blur(10px);
 border: 2px solid rgba(102, 126, 234, 0.5);
@@ -208,9 +209,9 @@ box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
 }
 
 .input-section {
-display : flex;
+display: flex;
 justify-content: center;
-align-items : center;
+align-items: center;
 flex-direction: column;
 }
 
@@ -234,6 +235,7 @@ border-color: #667eea;
 background: rgba(255, 255, 255, 0.15);
 box-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
 transform: translateY(-2px);
+
 }
 
 .input-section input::placeholder {
@@ -250,7 +252,7 @@ background: rgba(255, 255, 255, 0.1);
 backdrop-filter: blur(10px);
 color: white;
 resize: vertical;
-min-height: 250px;
+min-height: 150px;
 font-family: inherit;
 transition: all 0.3s ease;
 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -263,8 +265,10 @@ background: rgba(255, 255, 255, 0.15);
 box-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
 }
 
+
 .input-section textarea::placeholder {
 color: rgba(255, 255, 255, 0.6);
+
 }
 
 .button-group {

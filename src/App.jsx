@@ -79,6 +79,7 @@ Generate a ${difficulty} case about: ${theme}
 The case should:
 - Feature a specific client from an underrepresented community
 - Present a real-world adjacent scenario with clear stakes
+-Also remember to use different client names everytime
 - Require the lawyer to defend against discrimination, bias, or unfair treatment
 - Be appropriate for round ${currentRound} of 3 (increasing complexity)
 

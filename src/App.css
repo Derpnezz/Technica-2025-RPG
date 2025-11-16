@@ -591,7 +591,7 @@ box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
   position: fixed; /* Positions the button relative to the viewport */
   bottom: 20px;    /* 20px from the bottom of the screen */
   left: 20px;      /* 20px from the left of the screen */
-  background-color: #007bff; /* Example background color */
+  background-color: #2b69dc; /* Example background color */
   color: white;    /* Text color */
   border: none;
   border-radius: 50%; /* Makes the button round */

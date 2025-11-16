@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Scale, Clock, Gavel, Sparkles, Wand2, Trophy, Zap, Star } from 'lucide-react';
 import './App.css';
+import Header from './components/Header';
+import FeedbackToast from './components/FeedbackToast';
+import { parseVerdict } from './utils/feedback';
 
 
 const API_URL = 'http://localhost:3000/api';
@@ -20,6 +23,8 @@ export default function App() {
   const [scores, setScores] = useState([]);
   const [totalScore, setTotalScore] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [toast, setToast] = useState({ open: false, content: null });
+  const [showTutorial, setShowTutorial] = useState(false);
 
   // Initial fade in
   useEffect(() => {
@@ -40,6 +45,7 @@ export default function App() {
     setFadeClass("fade-out");
     setTimeout(() => {
       setStarted(true);
+      setShowTutorial(true);
     }, 800);
   };
   const generateAIPrompt = async () => {
@@ -75,7 +81,7 @@ export default function App() {
 
   const useCustomPrompt = () => {
     if (!customPrompt.trim()) {
-      alert('Please enter a debate topic first!');
+      setToast({ open: true, content: { type: 'error', title: 'Missing topic', message: 'Please enter a debate topic before using it.' } });
       return;
     }
     setPrompt(customPrompt);
@@ -86,7 +92,7 @@ export default function App() {
 
   const handleSubmitArgument = async () => {
     if (!argument.trim()) { // warns the user to enter something 
-      alert('Please write your argument before submitting!');
+      setToast({ open: true, content: { type: 'error', title: 'Empty argument', message: 'Write your argument before submitting so Judge AI can evaluate it.' } });
       return;
     }
 
@@ -112,22 +118,28 @@ export default function App() {
         judgeResponse = data.verdict;
         score = data.score;
       }
-      
-      if (score >= 80) {
+      // Convert the raw verdict into structured feedback and show a friendly toast
+      const feedback = parseVerdict(judgeResponse ?? { score });
+      if (feedback.score >= 80) {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
       }
-      setVerdict(judgeResponse);
-      setScores([...scores, score]);
-      setTotalScore(totalScore + score);
+
+      setVerdict(typeof judgeResponse === 'string' ? judgeResponse : JSON.stringify(judgeResponse, null, 2));
+      setScores([...scores, feedback.score]);
+      setTotalScore(totalScore + feedback.score);
       setGameState('results');
+
+      setToast({ open: true, content: { type: feedback.score >= 75 ? 'success' : 'info', title: feedback.title, message: feedback.message } });
     } catch (error) {
       console.error('Error getting verdict:', error);
-      setVerdict('SCORE: 75\nVERDICT: A solid argument with good reasoning! Judge Gemini approves! 🎯\nFEEDBACK: Consider providing more specific examples to strengthen your position. Keep up the great work!');
-
-      setScores([...scores, 75]);
-      setTotalScore(totalScore + 75);
+      // Fallback friendly feedback
+      const fallback = { score: 75, title: 'Score: 75/100', message: 'A solid argument. Tip: add a concrete example to strengthen your claims.' };
+      setVerdict('SCORE: 75\nVERDICT: A solid argument with good reasoning!\nFEEDBACK: Consider providing more specific examples to strengthen your position.');
+      setScores([...scores, fallback.score]);
+      setTotalScore(totalScore + fallback.score);
       setGameState('results');
+      setToast({ open: true, content: { type: 'info', title: fallback.title, message: fallback.message } });
     }
   };
 
@@ -163,9 +175,12 @@ export default function App() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const progressPercent = Math.max(0, Math.min(100, Math.round((timeLeft / 120) * 100)));
+
   return (
     <>
       <div id="full-screen">
+        <Header onOpenTutorial={() => setShowTutorial(true)} />
         {!started && (
           <main id="main-wrapper" className={fadeClass}>
             <div id="top">
@@ -232,6 +247,15 @@ export default function App() {
                     {prompt}
                   </div>
 
+                  <div className="playing-extra" style={{textAlign: 'center'}}>
+                    <div className="progress-wrap">
+                      <div className="progress-bar" aria-hidden>
+                        <div className="progress-fill" style={{width: `${progressPercent}%`}} />
+                      </div>
+                    </div>
+                    <div style={{marginTop: 8, color: 'rgba(255,255,255,0.8)'}}>Time remaining: {formatTime(timeLeft)}</div>
+                  </div>
+
                   <div className="input-section2">
                     <h3 style={{fontSize: '24px', marginBottom: '15px', textAlign: 'center'}}>Your Argument:</h3>
                     <textarea
@@ -293,6 +317,7 @@ export default function App() {
                 </h2>
                 
                 <div className="verdict-box">
+                  <div style={{fontWeight: 800, marginBottom: 10}}>Judge Summary</div>
                   {verdict}
                 </div>
 
@@ -357,6 +382,28 @@ export default function App() {
             )}
           </main>
         )}
+        {/* Tutorial overlay */}
+        {showTutorial && (
+          <div className="tutorial-modal" onClick={() => setShowTutorial(false)}>
+            <div className="tutorial-card" onClick={(e) => e.stopPropagation()}>
+              <h3>How to play</h3>
+              <p>Welcome to Objection! — AI Debate Arena. You will play 3 rounds. For each round:</p>
+              <ul>
+                <li>Generate an AI topic or enter your own.</li>
+                <li>Compose a focused argument (use examples & evidence).</li>
+                <li>Submit to Judge AI and get a clear score and tips.</li>
+              </ul>
+              <p>Try to reach a high average score. Use the feedback toast to get quick, actionable tips after each round.</p>
+              <div className="tutorial-actions">
+                <button className="btn btn-primary" onClick={() => setShowTutorial(false)}>Got it</button>
+                <button className="btn btn-primary" onClick={() => { setShowTutorial(false); }}>Start</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Non-blocking feedback */}
+        <FeedbackToast open={toast.open} content={toast.content} onClose={() => setToast({ open: false, content: null })} />
       </div>
     </>
   );

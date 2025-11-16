@@ -135,7 +135,7 @@ export default function App() {
       console.error('Error getting verdict:', error);
       // Fallback friendly feedback
       const fallback = { score: 75, title: 'Score: 75/100', message: 'A solid argument. Tip: add a concrete example to strengthen your claims.' };
-      setVerdict('SCORE: 75\nVERDICT: A solid argument with good reasoning!\nFEEDBACK: Consider providing more specific examples to strengthen your position.');
+      setVerdict('ERROR RETRIEVING GEMINI RESPONSE');
       setScores([...scores, fallback.score]);
       setTotalScore(totalScore + fallback.score);
       setGameState('results');

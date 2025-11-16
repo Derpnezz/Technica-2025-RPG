@@ -4,6 +4,8 @@ import './App.css';
 import Header from './components/Header';
 import FeedbackToast from './components/FeedbackToast';
 import { parseVerdict } from './utils/feedback';
+import Storyboard from './components/Storyboard';
+import { SAMPLE_CASES } from './data/storyboards/sampleCase';
 
 
 const API_URL = 'http://localhost:3000/api';
@@ -25,6 +27,8 @@ export default function App() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [toast, setToast] = useState({ open: false, content: null });
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showStoryboard, setShowStoryboard] = useState(false);
+  const [currentCase, setCurrentCase] = useState(null);
 
   // Initial fade in
   useEffect(() => {
@@ -109,23 +113,19 @@ export default function App() {
       const data = await response.json();
 
       
-      let judgeResponse, score;
-      
-      if (data.error) {
-        judgeResponse = data.fallback.verdict;
-        score = data.fallback.score;
-      } else {
-        judgeResponse = data.verdict;
-        score = data.score;
-      }
-      // Convert the raw verdict into structured feedback and show a friendly toast
-      const feedback = parseVerdict(judgeResponse ?? { score });
+      // normalize response: server returns structured JSON when available
+      const parsedData = data.error ? data.fallback : data;
+      const feedback = parseVerdict(parsedData);
       if (feedback.score >= 80) {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
       }
 
-      setVerdict(typeof judgeResponse === 'string' ? judgeResponse : JSON.stringify(judgeResponse, null, 2));
+      // Present verdict text in the results box (prefer human-friendly fields)
+      const verdictText = parsedData.verdict || (typeof parsedData === 'string' ? parsedData : JSON.stringify(parsedData, null, 2));
+      const feedbackText = parsedData.feedback || feedback.message || '';
+
+      setVerdict(`${verdictText}\n\nFEEDBACK: ${feedbackText}`);
       setScores([...scores, feedback.score]);
       setTotalScore(totalScore + feedback.score);
       setGameState('results');
@@ -180,7 +180,7 @@ export default function App() {
   return (
     <>
       <div id="full-screen">
-        <Header onOpenTutorial={() => setShowTutorial(true)} />
+  <Header onOpenTutorial={() => setShowTutorial(true)} onOpenStory={() => setShowStoryboard(true)} />
         {!started && (
           <main id="main-wrapper" className={fadeClass}>
             <div id="top">
@@ -382,7 +382,7 @@ export default function App() {
             )}
           </main>
         )}
-        {/* Tutorial overlay */}
+  {/* Tutorial overlay */}
         {showTutorial && (
           <div className="tutorial-modal" onClick={() => setShowTutorial(false)}>
             <div className="tutorial-card" onClick={(e) => e.stopPropagation()}>
@@ -401,6 +401,18 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {/* Storyboard overlay */}
+        <Storyboard open={showStoryboard} onClose={() => setShowStoryboard(false)} onStartCase={(c) => {
+          setCurrentCase(c);
+          // preset the debate prompt to the case's entry prompt and close storyboard
+          if (c.entryPrompt) {
+            setPrompt(c.entryPrompt);
+            setGameState('playing');
+            setTimeLeft(120);
+          }
+          setShowStoryboard(false);
+        }} cases={SAMPLE_CASES} />
 
         {/* Non-blocking feedback */}
         <FeedbackToast open={toast.open} content={toast.content} onClose={() => setToast({ open: false, content: null })} />
